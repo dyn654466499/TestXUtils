@@ -40,12 +40,20 @@ public class DBHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+//		String CREATE_TrafficInfo_SQL = "CREATE TABLE TrafficDoctorInfo("
+//				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+//				+ "WIFI long default(0)," + "GPRS long default(0),"
+//				+ "time TIMESTAMP default (datetime('now', 'localtime')),"
+//				+ "packagename varchar(50))";
+
 		String CREATE_TrafficInfo_SQL = "CREATE TABLE TrafficDoctorInfo("
 				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ "WIFI long default(0)," + "GPRS long default(0),"
+				+ "phoneNum varchar(20)," 
+				+ "imei varchar(20),"
 				+ "time TIMESTAMP default (datetime('now', 'localtime')),"
-				+ "packagename varchar(50))";
-
+				+ "data long,"
+				+ "bundleID varchar(30))";
+		
 		String CREATE_Plans_SQL = "CREATE TABLE Plans("
 				+ "company varchar(20)," + "planName varchar(50) primary key,"
 				+ "planTraffic int," + "planPrice int)";
@@ -62,41 +70,44 @@ public class DBHelper extends SQLiteOpenHelper {
 		// TODO Auto-generated method stub
 	}
 
-	public void insertTrafficGPRS(long traffic, String packagename) {
-		SQLiteDatabase db = getWritableDatabase();
-		String sql = "insert into TrafficDoctorInfo(GPRS,packagename) values("
-				+ traffic + ",'" + packagename + "')";
-		db.execSQL(sql);
-		Log.i("SQLiteHelper", "insertTrafficGPRS>>>>>>>>>>>");
-		db.close();
-	}
-
-	public void insertTrafficWIFI(long traffic, String packagename) {
-		SQLiteDatabase db = getWritableDatabase();
-		String sql = "insert into TrafficDoctorInfo(WIFI,packagename) values("
-				+ traffic + ",'" + packagename + "')";
-		db.execSQL(sql);
-		Log.i("SQLiteHelper", "insertTrafficWIFI>>>>>>>>>>>");
-		db.close();
-	}
+//	public void insertTrafficGPRS(long traffic, String packagename) {
+//		SQLiteDatabase db = getWritableDatabase();
+//		String sql = "insert into TrafficDoctorInfo(GPRS,packagename) values("
+//				+ traffic + ",'" + packagename + "')";
+//		db.execSQL(sql);
+//		Log.i("SQLiteHelper", "insertTrafficGPRS>>>>>>>>>>>");
+//		db.close();
+//	}
+//
+//	public void insertTrafficWIFI(long traffic, String packagename) {
+//		SQLiteDatabase db = getWritableDatabase();
+//		String sql = "insert into TrafficDoctorInfo(WIFI,packagename) values("
+//				+ traffic + ",'" + packagename + "')";
+//		db.execSQL(sql);
+//		Log.i("SQLiteHelper", "insertTrafficWIFI>>>>>>>>>>>");
+//		db.close();
+//	}
 
 	/**
-	 * 高效地批量插入
+	 * 批量插入
 	 * @param trafficInfo
 	 */
-	public void InsertTrafficWifiByBatch(List<TrafficInfo> trafficInfo) {
+	public void batchInsertTraffic(List<TrafficInfo> trafficInfo) {
 		if(trafficInfo == null)return;
 		
 		SQLiteDatabase db = getWritableDatabase();
 		
-		String sql = "insert into TrafficDoctorInfo(WIFI,packagename) values(?,?)";
+		String sql = "insert into TrafficDoctorInfo(phoneNum,imei,time,data,bundleID) values(?,?,?,?,?)";
 		SQLiteStatement stat = db.compileStatement(sql);
 		
 		db.beginTransaction();
 		try {
 			for (TrafficInfo info : trafficInfo) {
-				stat.bindLong(1, info.getTime());
-				stat.bindString(2, info.getBundleID());
+				stat.bindString(1, info.getPhoneNum());
+				stat.bindString(2, info.getImei());
+				stat.bindLong(3, info.getTime());
+				stat.bindLong(4, info.getData());
+				stat.bindString(5, info.getBundleID());
 				stat.executeInsert();
 			}
 			db.setTransactionSuccessful();
@@ -108,6 +119,59 @@ public class DBHelper extends SQLiteOpenHelper {
 		}
 	}
 	
+	/**
+	 * 高效地批量删除
+	 * @param trafficInfo
+	 */
+	public void batchDeleteTraffic(List<TrafficInfo> trafficInfo) {
+		if(trafficInfo == null)return;
+		
+		SQLiteDatabase db = getWritableDatabase();
+		
+		String sql = "delete from TrafficDoctorInfo where phoneNum = ?";
+		SQLiteStatement stat = db.compileStatement(sql);
+		
+		db.beginTransaction();
+		try {
+			for (TrafficInfo info : trafficInfo) {
+				stat.bindString(1, info.getPhoneNum());
+				stat.executeUpdateDelete();
+			}
+			db.setTransactionSuccessful();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			db.endTransaction();
+			db.close();
+		}
+	}
+	
+	public void batchUpdateTraffic(List<TrafficInfo> trafficInfo) {
+		if(trafficInfo == null)return;
+		
+		SQLiteDatabase db = getWritableDatabase();
+		
+		String sql = "insert into TrafficDoctorInfo(phoneNum,imei,time,data,bundleID) values(?,?,?,?,?)";
+		SQLiteStatement stat = db.compileStatement(sql);
+		
+		db.beginTransaction();
+		try {
+			for (TrafficInfo info : trafficInfo) {
+				stat.bindString(1, info.getPhoneNum());
+				stat.bindString(2, info.getImei());
+				stat.bindLong(3, info.getTime());
+				stat.bindLong(4, info.getData());
+				stat.bindString(5, info.getBundleID());
+				stat.executeInsert();
+			}
+			db.setTransactionSuccessful();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			db.endTransaction();
+			db.close();
+		}
+	}
 	// @SuppressLint("SimpleDateFormat")
 	// public ArrayList<AppModel> queryByTime(Context context, String time) {//
 	// today,yesterday,samemonth
