@@ -1,5 +1,8 @@
 package com.example.testsqlite;
 
+import android.content.Context;
+import android.telephony.TelephonyManager;
+
 /**
  * 使用bean操作traffic information
  * @author 邓耀宁
@@ -8,6 +11,7 @@ package com.example.testsqlite;
 public class TrafficInfo {
     
 	//private int id;
+	private TelephonyManager tm = (TelephonyManager)TrafficManager.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
 	
 	//使用流量的app对应的包名
 	private String bundleID;
@@ -16,10 +20,10 @@ public class TrafficInfo {
 	private long time;
 	
 	//手机号
-	private String phoneNum;
+	private String phoneNum = tm.getLine1Number();
 	
 	//手机IMEI
-	private String imei;
+	private String imei = tm.getDeviceId();
 	
 	//网络类型
 	private String netType;
