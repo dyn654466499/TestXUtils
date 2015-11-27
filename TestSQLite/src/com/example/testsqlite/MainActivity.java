@@ -10,9 +10,11 @@ import org.apache.http.util.EncodingUtils;
 
 import com.example.adapters.TrafficAdapter;
 import com.example.beans.TrafficInfo;
+import com.example.utils.CommonUtils;
 import com.example.utils.DBUtils;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -32,22 +34,28 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.loading);
         mContext = this;
         //1.获取一个包管理器。
         PackageManager pm = getPackageManager();
         //2.遍历手机操作系统 获取所有的应用程序的uid
         final List<ApplicationInfo> appliactaionInfos = pm.getInstalledApplications(0);
         trafficInfo = new LinkedList<TrafficInfo>();
+        
         /**
-         * create一个子线程封装数据，以免UI线程卡顿
+         * 由于初始化数据操作耗时，故create一个子线程封装数据，并显示loading界面，以免UI线程卡顿。
          */
-        new Thread(){
+        new AsyncTask<Void, Void, Void>(){
 			@Override
-			public void run() {
+			protected void onPreExecute() {
 				// TODO Auto-generated method stub
-				super.run();
-				  for(ApplicationInfo applicationInfo : appliactaionInfos){
+				super.onPreExecute();
+			}
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				// TODO Auto-generated method stub
+				 for(ApplicationInfo applicationInfo : appliactaionInfos){
 			        	int uid = applicationInfo.uid;    // 获得软件uid
 			        	//proc/uid_stat/10086
 			        	//方法返回值 -1 代表的是应用程序没有产生流量 或者操作系统不支持流量统计
@@ -64,19 +72,24 @@ public class MainActivity extends Activity {
 			        	info.setBundleID(applicationInfo.packageName);
 			        	trafficInfo.add(info);
 			        }
+//		        TrafficStats.getMobileTxBytes();//获取手机3g/2g网络上传的总流量
+//		        TrafficStats.getMobileRxBytes();//手机2g/3g下载的总流量
+//		        TrafficStats.getTotalTxBytes();//手机全部网络接口 包括wifi，3g、2g上传的总流量
+//		        TrafficStats.getTotalRxBytes();//手机全部网络接口 包括wifi，3g、2g下载的总流量
+				return null;
 			}
-        	
-        }.start();
-      
-//        TrafficStats.getMobileTxBytes();//获取手机3g/2g网络上传的总流量
-//        TrafficStats.getMobileRxBytes();//手机2g/3g下载的总流量
-//
-//        TrafficStats.getTotalTxBytes();//手机全部网络接口 包括wifi，3g、2g上传的总流量
-//        TrafficStats.getTotalRxBytes();//手机全部网络接口 包括wifi，3g、2g下载的总流量
-        
-        ListView listView = (ListView)findViewById(R.id.listView_data);
-        adapter = new TrafficAdapter(this,new LinkedList<TrafficInfo>());
-        listView.setAdapter(adapter);
+
+			@Override
+			protected void onPostExecute(Void result) {
+				// TODO Auto-generated method stub
+				super.onPostExecute(result);
+				setContentView(R.layout.activity_main);
+				ListView listView = (ListView)findViewById(R.id.listView_data);
+		        adapter = new TrafficAdapter(mContext,new LinkedList<TrafficInfo>());
+		        listView.setAdapter(adapter);
+			}
+			
+		}.execute();
     }
     
     /**
@@ -86,7 +99,8 @@ public class MainActivity extends Activity {
     public void DBOperate(final View view){
     	switch (view.getId()) {
 		case R.id.button_delete:
-			DBUtils.getInstance(mContext).deleteTrafficInfoData(DBUtils.table_trafficInfo, "phoneNum=?", new String[]{"15277104415"});
+			DBUtils.getInstance(mContext).deleteTrafficInfoData(DBUtils.TABLE_TRAFFICINFO, "phoneNum=?", new String[]{"15277104415"});
+			CommonUtils.showTips(mContext, "执行删除操作");
 			break;
 			
 		case R.id.button_select:
@@ -101,7 +115,7 @@ public class MainActivity extends Activity {
 				@Override
 				protected List<TrafficInfo> doInBackground(Void... params) {
 					// TODO Auto-generated method stub
-					List<TrafficInfo> infos = DBUtils.getInstance(mContext).selectTrafficInfoData(DBUtils.table_trafficInfo,null,null,null,null,null,null);
+					List<TrafficInfo> infos = DBUtils.getInstance(mContext).selectTrafficInfoData(DBUtils.TABLE_TRAFFICINFO,null,null,null,null,null,null);
 					return infos;
 				}
 
@@ -115,14 +129,21 @@ public class MainActivity extends Activity {
 				}
 				
 			}.execute();
+			CommonUtils.showTips(mContext, "执行查询操作");
 			break;
 			
 		case R.id.button_insert:
 			DBUtils.getInstance(mContext).insertTrafficInfoData(trafficInfo);
+			CommonUtils.showTips(mContext, "执行插入操作");
 			break;
 			
 		case R.id.button_update:
-			
+			ContentValues values = new ContentValues();
+			values.put("netType", "4G");
+			values.put("wifi_ssid", "无");
+			values.put("operators", "中国联通");
+			DBUtils.getInstance(mContext).updateTrafficInfoData(DBUtils.TABLE_TRAFFICINFO, values, null, null);
+			CommonUtils.showTips(mContext, "执行更新操作");
 			break;
 			
 		default:

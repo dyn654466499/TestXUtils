@@ -28,7 +28,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	 */
 	private static DBUtils dbHelper = null;
 	private static final String DBName = "TrafficDoctorDB";
-	public static final String table_trafficInfo = "TrafficDoctorInfo";
+	public static final String TABLE_TRAFFICINFO = "TrafficDoctorInfo";
 
 	public static DBUtils getInstance(Context context) {
 		if (dbHelper == null) {
@@ -55,7 +55,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		// + "time TIMESTAMP default (datetime('now', 'localtime')),"
 		// + "packagename varchar(50))";
 
-		String CREATE_TrafficInfo_SQL = "CREATE TABLE " + table_trafficInfo
+		String CREATE_TrafficInfo_SQL = "CREATE TABLE " + TABLE_TRAFFICINFO
 				+ "(" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ "phoneNum varchar(20)," + "imei varchar(20),"
 				+ "netType varchar(10)," + "wifi_ssid varchar(30),"

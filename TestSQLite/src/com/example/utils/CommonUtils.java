@@ -11,6 +11,9 @@ import java.util.Locale;
 
 import org.apache.http.util.EncodingUtils;
 
+import android.content.Context;
+import android.widget.Toast;
+
 /**
  * 公共的工具类
  * @author 邓耀宁
@@ -90,4 +93,8 @@ public class CommonUtils {
          return res;   
       
     }  
+    
+    public static void showTips(Context ctx,String message){
+    	Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
+    }
 }
