@@ -1,4 +1,6 @@
-package com.example.testsqlite;
+package com.example.beans;
+
+import com.example.testsqlite.TrafficManager;
 
 import android.content.Context;
 import android.telephony.TelephonyManager;
@@ -16,7 +18,7 @@ public class TrafficInfo {
 	//使用流量的app对应的包名
 	private String bundleID;
 	
-	//
+	//插入时间
 	private long time;
 	
 	//手机号
@@ -30,6 +32,28 @@ public class TrafficInfo {
 	
 	//数据量的字节数
 	private long data;
+	
+	//wifi的ssid
+	private String wifi_ssid;
+	
+	/**
+	 * ----------------------------    getter和setter          ------------------------------
+	 */
+	
+	public String getWifi_ssid() {
+		return wifi_ssid;
+	}
+	public void setWifi_ssid(String wifi_ssid) {
+		this.wifi_ssid = wifi_ssid;
+	}
+	public String getOperators() {
+		return operators;
+	}
+	public void setOperators(String operators) {
+		this.operators = operators;
+	}
+	//运营商标识
+	private String operators;
 	
 	public long getData() {
 		return data;

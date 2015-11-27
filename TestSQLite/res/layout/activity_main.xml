@@ -5,41 +5,13 @@
     tools:context="com.example.testsqlite.MainActivity" >
 
     <Button
-        android:id="@+id/button_insert"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/button_select"
-        android:layout_below="@+id/button_select"
-        android:layout_marginTop="19dp"
-        android:text="插入" />
-
-    <Button
-        android:id="@+id/button_select"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/button_delete"
-        android:layout_alignBottom="@+id/button_delete"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="46dp"
-        android:text="查询" />
-
-    <Button
-        android:id="@+id/button_delete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="38dp"
-        android:layout_marginTop="20dp"
-        android:text="删除" />
-
-    <Button
         android:id="@+id/button_update"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/button_insert"
         android:layout_alignBottom="@+id/button_insert"
         android:layout_alignLeft="@+id/button_delete"
+        android:onClick="DBOperate"
         android:text="修改" />
 
     <ListView
@@ -50,5 +22,36 @@
         android:layout_below="@+id/button_update"
         android:layout_marginTop="5dp" >
     </ListView>
+
+    <Button
+        android:id="@+id/button_insert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button_delete"
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="26dp"
+        android:layout_toRightOf="@+id/button_update"
+        android:onClick="DBOperate"
+        android:text="插入" />
+
+    <Button
+        android:id="@+id/button_select"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/button_insert"
+        android:layout_alignTop="@+id/button_delete"
+        android:onClick="DBOperate"
+        android:text="查询" />
+
+    <Button
+        android:id="@+id/button_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="95dp"
+        android:layout_marginTop="15dp"
+        android:onClick="DBOperate"
+        android:text="删除" />
 
 </RelativeLayout>

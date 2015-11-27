@@ -8,105 +8,127 @@ import java.util.List;
 
 import org.apache.http.util.EncodingUtils;
 
+import com.example.adapters.TrafficAdapter;
+import com.example.beans.TrafficInfo;
+import com.example.utils.DBUtils;
+
 import android.app.Activity;
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.net.TrafficStats;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.ListView;
 
 
 public class MainActivity extends Activity {
-
+	private TrafficAdapter adapter;
+	private Context mContext;
+	private LinkedList<TrafficInfo> trafficInfo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
-        ButtonListener listener = new ButtonListener();
-        Button button_select = (Button)findViewById(R.id.button_select);
-        Button button_insert = (Button)findViewById(R.id.button_insert);
-        Button button_delete = (Button)findViewById(R.id.button_delete);
-        Button button_update = (Button)findViewById(R.id.button_update);
-        
-        button_select.setOnClickListener(listener);
-        button_insert.setOnClickListener(listener);
-        button_delete.setOnClickListener(listener);
-        button_update.setOnClickListener(listener);
+        mContext = this;
+        //1.获取一个包管理器。
+        PackageManager pm = getPackageManager();
+        //2.遍历手机操作系统 获取所有的应用程序的uid
+        final List<ApplicationInfo> appliactaionInfos = pm.getInstalledApplications(0);
+        trafficInfo = new LinkedList<TrafficInfo>();
+        /**
+         * create一个子线程封装数据，以免UI线程卡顿
+         */
+        new Thread(){
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				super.run();
+				  for(ApplicationInfo applicationInfo : appliactaionInfos){
+			        	int uid = applicationInfo.uid;    // 获得软件uid
+			        	//proc/uid_stat/10086
+			        	//方法返回值 -1 代表的是应用程序没有产生流量 或者操作系统不支持流量统计
+			        	long tx = TrafficStats.getUidTxBytes(uid);//发送的 上传的流量byte
+			        	long rx = TrafficStats.getUidRxBytes(uid);//下载的流量 byte
+			        	
+			        	TrafficInfo info = new TrafficInfo();
+			        	info.setPhoneNum("15277104415");
+			        	info.setNetType("wifi");
+			        	info.setWifi_ssid("test");
+			        	info.setOperators("中国移动");
+			        	info.setData(rx);
+			        	info.setTime(System.currentTimeMillis());
+			        	info.setBundleID(applicationInfo.packageName);
+			        	trafficInfo.add(info);
+			        }
+			}
+        	
+        }.start();
+      
+//        TrafficStats.getMobileTxBytes();//获取手机3g/2g网络上传的总流量
+//        TrafficStats.getMobileRxBytes();//手机2g/3g下载的总流量
+//
+//        TrafficStats.getTotalTxBytes();//手机全部网络接口 包括wifi，3g、2g上传的总流量
+//        TrafficStats.getTotalRxBytes();//手机全部网络接口 包括wifi，3g、2g下载的总流量
         
         ListView listView = (ListView)findViewById(R.id.listView_data);
-        LinkedList<TrafficInfo> trafficInfo = new LinkedList<TrafficInfo>();
-        
-        for (int i = 0; i < 10; i++) {
-        	TrafficInfo info = new TrafficInfo();
-        	info.setNetType("wifi");
-        	info.setData(2000l);
-        	info.setTime(System.currentTimeMillis());
-        	info.setBundleID("com.example.testsqlite");
-        	trafficInfo.add(info);
-		}
-        listView.setAdapter(new TrafficAdapter(this,trafficInfo));
-        
-//        Log.e("", "start");
-//        try {
-//			Log.e("", readFileData("/data/anr/traces.txt"));
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-    }
-
-    class ButtonListener implements OnClickListener{
-
-		@Override
-		public void onClick(View view) {
-			// TODO Auto-generated method stub
-			switch (view.getId()) {
-			case R.id.button_delete:
-				
-				break;
-			case R.id.button_select:
-				
-				break;
-			case R.id.button_insert:
-				
-				break;
-			case R.id.button_update:
-				
-				break;
-				
-			default:
-				break;
-			}
-		}
-    	
+        adapter = new TrafficAdapter(this,new LinkedList<TrafficInfo>());
+        listView.setAdapter(adapter);
     }
     
     /**
-     * 读取文件数据  
-     * @param fileName
-     * @return
-     * @throws IOException
+     * 在xml中，button设置了onclick
+     * @param view
      */
-    public String readFileData(String fileName) throws IOException{   
-      String res="";   
-      try{   
-    	     File file = new File(fileName);
-             FileInputStream fis = new FileInputStream(file);   
-             int length = fis.available();   
-             byte [] buffer = new byte[length];   
-             fis.read(buffer);       
-             res = EncodingUtils.getString(buffer, "UTF-8");   
-             fis.close();       
-         }   
-         catch(Exception e){   
-             e.printStackTrace();   
-         }   
-         return res;   
-      
-    }    
+    public void DBOperate(final View view){
+    	switch (view.getId()) {
+		case R.id.button_delete:
+			DBUtils.getInstance(mContext).deleteTrafficInfoData(DBUtils.table_trafficInfo, "phoneNum=?", new String[]{"15277104415"});
+			break;
+			
+		case R.id.button_select:
+			new AsyncTask<Void, Void, List<TrafficInfo>>(){
+				@Override
+				protected void onPreExecute() {
+					// TODO Auto-generated method stub
+					super.onPreExecute();
+					view.setEnabled(false);
+				}
+
+				@Override
+				protected List<TrafficInfo> doInBackground(Void... params) {
+					// TODO Auto-generated method stub
+					List<TrafficInfo> infos = DBUtils.getInstance(mContext).selectTrafficInfoData(DBUtils.table_trafficInfo,null,null,null,null,null,null);
+					return infos;
+				}
+
+				@Override
+				protected void onPostExecute(List<TrafficInfo> result) {
+					// TODO Auto-generated method stub
+					adapter.setTrafficInfo(result);
+					adapter.notifyDataSetChanged();
+					view.setEnabled(true);
+					super.onPostExecute(result);
+				}
+				
+			}.execute();
+			break;
+			
+		case R.id.button_insert:
+			DBUtils.getInstance(mContext).insertTrafficInfoData(trafficInfo);
+			break;
+			
+		case R.id.button_update:
+			
+			break;
+			
+		default:
+			break;
+		}
+    }
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
