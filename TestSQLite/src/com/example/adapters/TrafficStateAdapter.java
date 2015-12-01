@@ -11,21 +11,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.beans.TrafficInfo;
-import com.example.beans.TrafficStateInfo;
+import com.example.beans.TrafficDetailInfo;
 import com.example.testsqlite.R;
 import com.example.utils.CommonUtils;
 
 public class TrafficStateAdapter extends BaseAdapter{
     private Context context;
-    private List<TrafficStateInfo> trafficInfo;
+    private List<TrafficDetailInfo> trafficInfo;
 	
-	public TrafficStateAdapter(Context context, List<TrafficStateInfo> trafficInfo) {
+	public TrafficStateAdapter(Context context, List<TrafficDetailInfo> trafficInfo) {
 		super();
 		this.context = context;
 		this.trafficInfo = trafficInfo;
 	}
 	
-	public void setTrafficInfo(List<TrafficStateInfo> trafficInfo) {
+	public void setTrafficInfo(List<TrafficDetailInfo> trafficInfo) {
 		this.trafficInfo = trafficInfo;
 	}
 
@@ -36,7 +36,7 @@ public class TrafficStateAdapter extends BaseAdapter{
 	}
 
 	@Override
-	public TrafficStateInfo getItem(int arg0) {
+	public TrafficDetailInfo getItem(int arg0) {
 		// TODO Auto-generated method stub
 		return trafficInfo.get(arg0);
 	}

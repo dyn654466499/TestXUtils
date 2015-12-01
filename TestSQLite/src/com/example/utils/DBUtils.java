@@ -28,7 +28,8 @@ public class DBUtils extends SQLiteOpenHelper {
 	 */
 	private static DBUtils dbHelper = null;
 	private static final String DBName = "TrafficDoctorDB";
-	public static final String TABLE_TRAFFICINFO = "TrafficDoctorInfo";
+	public static final String TABLE_TRAFFIC_INFO = "TrafficDoctorInfo";
+	public static final String TABLE_WIFI_TRAFFIC_INFO = "WifiTrafficInfo";
 
 	public static DBUtils getInstance(Context context) {
 		if (dbHelper == null) {
@@ -55,7 +56,7 @@ public class DBUtils extends SQLiteOpenHelper {
 		// + "time TIMESTAMP default (datetime('now', 'localtime')),"
 		// + "packagename varchar(50))";
 
-		String CREATE_TrafficInfo_SQL = "CREATE TABLE " + TABLE_TRAFFICINFO
+		String CREATE_TrafficInfo_SQL = "CREATE TABLE " + TABLE_TRAFFIC_INFO
 				+ "(" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ "phoneNum varchar(20)," + "imei varchar(20),"
 				+ "netType varchar(10)," + "wifi_ssid varchar(30),"
@@ -67,9 +68,14 @@ public class DBUtils extends SQLiteOpenHelper {
 				+ "company varchar(20)," + "planName varchar(50) primary key,"
 				+ "planTraffic int," + "planPrice int)";
 		// String DATE_TRIGGER ="";
-
+//		String CREATE_WifiTrafficInfo_SQL = "CREATE TABLE " + TABLE_WIFI_TRAFFIC_INFO
+//				+ "bundleID varchar(30) primary key,"
+//				+ "wifi_ssid varchar(30),"
+//				+ "time TIMESTAMP default (datetime('now', 'localtime'))," 
+//				+ "data long)";
+		
 		db.execSQL(CREATE_TrafficInfo_SQL);
-		db.execSQL(CREATE_Plans_SQL);
+		//db.execSQL(CREATE_WifiTrafficInfo_SQL);
 
 		Log.i("SQLiteHelper", "onCreate>>>>>>>>>>>start");
 	}
@@ -108,7 +114,7 @@ public class DBUtils extends SQLiteOpenHelper {
      * @param orderBy 排序
      * @return
      */
-	public List<TrafficInfo> selectTrafficInfoData(String table,
+	public List<TrafficInfo> selectTrafficInfo(String table,
 			String[] columns, String selection, String[] selectionArgs,
 			String groupBy, String having, String orderBy) {
 		
@@ -142,13 +148,13 @@ public class DBUtils extends SQLiteOpenHelper {
 	 * 
 	 * @param trafficInfos 封装TrafficInfo的列表
 	 */
-	public void insertTrafficInfoData(List<TrafficInfo> trafficInfos) {
+	public void insertWifiTrafficInfo(List<TrafficInfo> trafficInfos) {
 		if (trafficInfos == null)
 			return;
 
 		SQLiteDatabase db = getWritableDatabase();
 
-		String sql = "insert into TrafficDoctorInfo(phoneNum,imei,netType,wifi_ssid,operators,time,data,bundleID) values(?,?,?,?,?,?,?,?)";
+		String sql = "insert into "+TABLE_WIFI_TRAFFIC_INFO+"(bundleID,wifi_ssid,time,data) values(?,?,?,?,?,?,?,?)";
 		SQLiteStatement stat = db.compileStatement(sql);
 
 		db.beginTransaction();
@@ -174,13 +180,49 @@ public class DBUtils extends SQLiteOpenHelper {
 	}
 
 	/**
+	 * 插入流量信息数据（可批量插入）
+	 * 
+	 * @param trafficInfos 封装TrafficInfo的列表
+	 */
+	public void insertTrafficInfo(List<? extends TrafficInfo> trafficInfos) {
+		if (trafficInfos == null)
+			return;
+
+		SQLiteDatabase db = getWritableDatabase();
+
+		String sql = "insert into "+TABLE_TRAFFIC_INFO+"(phoneNum,imei,netType,wifi_ssid,operators,time,data,bundleID) values(?,?,?,?,?,?,?,?)";
+		SQLiteStatement stat = db.compileStatement(sql);
+
+		db.beginTransaction();
+		try {
+			for (TrafficInfo info : trafficInfos) {
+				stat.bindString(1, info.getPhoneNum());
+				stat.bindString(2, info.getImei());
+				stat.bindString(3, info.getNetType());
+				stat.bindString(4, info.getWifi_ssid());
+				stat.bindString(5, info.getOperators());
+				stat.bindLong(6, info.getTime());
+				stat.bindLong(7, info.getData());
+				stat.bindString(8, info.getBundleID());
+				stat.executeInsert();
+			}
+			db.setTransactionSuccessful();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			db.endTransaction();
+			db.close();
+		}
+	}
+	
+	/**
 	 * 删除数据（可批量删除）
 	 * 
 	 * @param table
 	 * @param whereClause
 	 * @param whereArgs
 	 */
-	public void deleteTrafficInfoData(String table, String whereClause,
+	public void deleteTrafficInfo(String table, String whereClause,
 			String[] whereArgs) {
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
@@ -203,7 +245,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	 * @param whereClause
 	 * @param whereArgs
 	 */
-	public void updateTrafficInfoData(String table, ContentValues values,
+	public void updateTrafficInfo(String table, ContentValues values,
 			String whereClause, String[] whereArgs) {
 		SQLiteDatabase db = getWritableDatabase();
 		db.beginTransaction();
@@ -218,6 +260,10 @@ public class DBUtils extends SQLiteOpenHelper {
 		}
 	}
 
+	
+	
+	
+	
 	// @SuppressLint("SimpleDateFormat")
 	// public ArrayList<AppModel> queryByTime(Context context, String time) {//
 	// today,yesterday,samemonth

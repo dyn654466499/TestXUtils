@@ -64,8 +64,7 @@ public class MainActivity extends Activity {
 			        	
 			        	TrafficInfo info = new TrafficInfo();
 			        	info.setPhoneNum("15277104415");
-			        	info.setNetType("wifi");
-			        	info.setWifi_ssid("test");
+			        	info.setNetType("4G");
 			        	info.setOperators("中国移动");
 			        	info.setData(rx+tx);
 			        	info.setTime(System.currentTimeMillis());
@@ -99,7 +98,7 @@ public class MainActivity extends Activity {
     public void DBOperate(final View view){
     	switch (view.getId()) {
 		case R.id.button_delete:
-			DBUtils.getInstance(mContext).deleteTrafficInfoData(DBUtils.TABLE_TRAFFICINFO, "phoneNum=?", new String[]{"15277104415"});
+			DBUtils.getInstance(mContext).deleteTrafficInfo(DBUtils.TABLE_TRAFFIC_INFO, "phoneNum=?", new String[]{"15277104415"});
 			CommonUtils.showTips(mContext, "执行删除操作");
 			break;
 			
@@ -115,7 +114,7 @@ public class MainActivity extends Activity {
 				@Override
 				protected List<TrafficInfo> doInBackground(Void... params) {
 					// TODO Auto-generated method stub
-					List<TrafficInfo> infos = DBUtils.getInstance(mContext).selectTrafficInfoData(DBUtils.TABLE_TRAFFICINFO,null,null,null,null,null,null);
+					List<TrafficInfo> infos = DBUtils.getInstance(mContext).selectTrafficInfo(DBUtils.TABLE_TRAFFIC_INFO,null,null,null,null,null,null);
 					return infos;
 				}
 
@@ -133,7 +132,7 @@ public class MainActivity extends Activity {
 			break;
 			
 		case R.id.button_insert:
-			DBUtils.getInstance(mContext).insertTrafficInfoData(trafficInfo);
+			DBUtils.getInstance(mContext).insertTrafficInfo(trafficInfo);
 			CommonUtils.showTips(mContext, "执行插入操作");
 			break;
 			
@@ -142,7 +141,7 @@ public class MainActivity extends Activity {
 			values.put("netType", "4G");
 			values.put("wifi_ssid", "无");
 			values.put("operators", "中国联通");
-			DBUtils.getInstance(mContext).updateTrafficInfoData(DBUtils.TABLE_TRAFFICINFO, values, null, null);
+			DBUtils.getInstance(mContext).updateTrafficInfo(DBUtils.TABLE_TRAFFIC_INFO, values, null, null);
 			CommonUtils.showTips(mContext, "执行更新操作");
 			break;
 			

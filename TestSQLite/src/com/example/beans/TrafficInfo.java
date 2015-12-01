@@ -16,10 +16,10 @@ public class TrafficInfo {
 	private TelephonyManager tm = (TelephonyManager)TrafficManager.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
 	
 	//使用流量的app对应的包名
-	private String bundleID;
+	private String bundleID="";
 	
 	//插入时间
-	private long time;
+	private long time=0;
 	
 	//手机号
 	private String phoneNum = tm.getLine1Number();
@@ -28,13 +28,13 @@ public class TrafficInfo {
 	private String imei = tm.getDeviceId();
 	
 	//网络类型
-	private String netType;
+	private String netType="";
 	
 	//数据量的字节数
-	private long data;
+	private long data=0;
 	
 	//wifi的ssid
-	private String wifi_ssid;
+	private String wifi_ssid="";
 	
 	/**
 	 * ----------------------------    getter和setter          ------------------------------
