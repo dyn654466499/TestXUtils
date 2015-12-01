@@ -34,31 +34,33 @@ public class CommonUtils {
     }
 	
 	/** 
-     * 格式化流量单位 
+     * 格式化流量单位,取小数后两位 (KB不取小数位)
      * @param size 
      * @return 格式化后的数据
      */  
     public static String getFormatTrafficSize(long size) {  
-    	long kiloByte = size / 1024;  
+    	double divisor = 1024d;
+    	double kiloByte = size / divisor;  
+    	
         if (kiloByte < 1) {  
-        	return "没有使用流量";
+        	return "未使用";
         }  
   
-        long megaByte = kiloByte / 1024;  
+        double megaByte = kiloByte / divisor;  
         if (megaByte < 1) {  
             BigDecimal result1 = new BigDecimal(Double.toString(kiloByte));  
-            return result1.setScale(2, BigDecimal.ROUND_HALF_UP)  
+            return result1.setScale(0, BigDecimal.ROUND_HALF_UP)  
                     .toPlainString() + "KB";  
         }  
   
-        long gigaByte = megaByte / 1024;  
+        double gigaByte = megaByte / divisor;  
         if (gigaByte < 1) {  
             BigDecimal result2 = new BigDecimal(Double.toString(megaByte));  
             return result2.setScale(2, BigDecimal.ROUND_HALF_UP)  
                     .toPlainString() + "MB";  
         }  
   
-        long teraBytes = gigaByte / 1024;  
+        double teraBytes = gigaByte / divisor;  
         if (teraBytes < 1) {  
             BigDecimal result3 = new BigDecimal(Double.toString(gigaByte));  
             return result3.setScale(2, BigDecimal.ROUND_HALF_UP)  

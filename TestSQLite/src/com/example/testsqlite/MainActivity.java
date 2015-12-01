@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
 			        	info.setNetType("wifi");
 			        	info.setWifi_ssid("test");
 			        	info.setOperators("中国移动");
-			        	info.setData(rx);
+			        	info.setData(rx+tx);
 			        	info.setTime(System.currentTimeMillis());
 			        	info.setBundleID(applicationInfo.packageName);
 			        	trafficInfo.add(info);
