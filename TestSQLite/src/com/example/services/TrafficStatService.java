@@ -43,7 +43,5 @@ public class TrafficStatService extends Service{
 		super.onDestroy();
 		timer.cancel();
 	}
-
-	
 	
 }

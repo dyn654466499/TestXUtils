@@ -1,8 +1,13 @@
 package com.example.utils;
 
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 
 import com.example.beans.TrafficInfo;
 
@@ -103,17 +108,23 @@ public class DBUtils extends SQLiteOpenHelper {
 	// db.close();
 	// }
 
-    /**
-     * 设置相应的参数，可查询单条、多条或所有数据。
-     * @param table 查询的表名
-     * @param columns 查询的列
-     * @param selection 查询条件
-     * @param selectionArgs 赋予查询条件的值
-     * @param groupBy
-     * @param having
-     * @param orderBy 排序
-     * @return
-     */
+	/**
+	 * 设置相应的参数，可查询单条、多条或所有数据。
+	 * 
+	 * @param table
+	 *            查询的表名
+	 * @param columns
+	 *            查询的列
+	 * @param selection
+	 *            查询条件（如"bundleID=?"）
+	 * @param selectionArgs
+	 *            赋予查询条件的值
+	 * @param groupBy
+	 * @param having
+	 * @param orderBy
+	 *            排序
+	 * @return
+	 */
 	public List<TrafficInfo> selectTrafficInfo(String table,
 			String[] columns, String selection, String[] selectionArgs,
 			String groupBy, String having, String orderBy) {
@@ -143,6 +154,37 @@ public class DBUtils extends SQLiteOpenHelper {
 		return infos;
 	}
 
+	/**
+	 * 查询当前一天的数据
+	 * @param table 查询的表
+	 * @param timeField 表中表示时间的字段，如time，其存储时间的类型为long;如果字段名字为null或空，则返回null；
+	 * @param selection
+	 * @param selectionArgs
+	 * @return
+	 */
+	public List<TrafficInfo> selectTrafficInfoByCurrentDay(String table,String timeField,String selection, String[] selectionArgs){
+		if(TextUtils.isEmpty(timeField))return null;
+		
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		cal.setTimeZone(TimeZone.getDefault());
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long startTime = cal.getTimeInMillis();
+		long endTime = startTime + 24 * 3600 * 1000-1;
+		
+		String append = selection!=null?" and "+selection:null;
+		List<TrafficInfo> infos = selectTrafficInfo(table,
+						null, timeField+">=? and "+timeField+"<=?"+append,
+						CommonUtils.mergeArray(new String[]{String.valueOf(startTime), String.valueOf(endTime)},selectionArgs), null,
+						null, null);
+		return infos;
+	}
+	
 	/**
 	 * 插入流量信息数据（可批量插入）
 	 * 

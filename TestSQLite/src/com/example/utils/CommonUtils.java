@@ -99,4 +99,23 @@ public class CommonUtils {
     public static void showTips(Context ctx,String message){
     	Toast.makeText(ctx, message, Toast.LENGTH_SHORT).show();
     }
+    
+	/**
+	 * 合并字符串数组
+	 * 
+	 * @param a
+	 *            数组a
+	 * @param b
+	 *            数组b
+	 * @return 合并后的数组
+	 */
+	public static String[] mergeArray(String[] a, String[] b) {
+		if (a != null && b != null) {
+			String[] c = new String[a.length + b.length];
+			System.arraycopy(a, 0, c, 0, a.length);
+			System.arraycopy(b, 0, c, a.length, b.length);
+			return c;
+		}
+		return null;
+	} 
 }

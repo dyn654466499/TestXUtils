@@ -54,4 +54,13 @@
         android:onClick="DBOperate"
         android:text="删除" />
 
+    <Button
+        android:id="@+id/button_app_show"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:onClick="DBOperate"
+        android:text="查询应用流量" />
+
 </RelativeLayout>

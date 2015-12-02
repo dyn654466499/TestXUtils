@@ -16,25 +16,28 @@ public class TrafficInfo {
 	private TelephonyManager tm = (TelephonyManager)TrafficManager.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
 	
 	//使用流量的app对应的包名
-	private String bundleID="";
+	protected String bundleID="";
 	
 	//插入时间
-	private long time=0;
+	protected long time=0;
 	
 	//手机号
-	private String phoneNum = tm.getLine1Number();
+	protected String phoneNum = tm.getLine1Number();
 	
 	//手机IMEI
-	private String imei = tm.getDeviceId();
+	protected String imei = tm.getDeviceId();
 	
 	//网络类型
-	private String netType="";
+	protected String netType="";
 	
 	//数据量的字节数
-	private long data=0;
+	protected long data=0;
 	
 	//wifi的ssid
-	private String wifi_ssid="";
+	protected String wifi_ssid="";
+	
+	//运营商标识
+	protected String operators="";
 	
 	/**
 	 * ----------------------------    getter和setter          ------------------------------
@@ -52,8 +55,6 @@ public class TrafficInfo {
 	public void setOperators(String operators) {
 		this.operators = operators;
 	}
-	//运营商标识
-	private String operators;
 	
 	public long getData() {
 		return data;

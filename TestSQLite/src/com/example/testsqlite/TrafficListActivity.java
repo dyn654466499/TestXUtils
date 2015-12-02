@@ -1,7 +1,11 @@
 package com.example.testsqlite;
 
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -12,6 +16,7 @@ import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.NetworkInfo;
+import android.net.NetworkInfo.State;
 import android.net.TrafficStats;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -28,9 +33,11 @@ import android.widget.ListView;
 
 import com.example.adapters.TrafficStateAdapter;
 import com.example.beans.TrafficDetailInfo;
+import com.example.utils.CommonUtils;
 import com.example.utils.DBUtils;
 
 public class TrafficListActivity extends Activity {
+	private static final String TAG = TrafficListActivity.class.getName();
 	LinkedList<TrafficDetailInfo> trafficInfos;
 	private Context mContext;
 	//获取一个包管理器。
@@ -123,35 +130,84 @@ public class TrafficListActivity extends Activity {
 		intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
 		intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
 		registerReceiver(wifiStateReceiver, intentFilter);
+		
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		//cal.setTimeZone(TimeZone.getDefault());
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long startTime = cal.getTimeInMillis();
+		Log.e(TAG, "startTime = "+CommonUtils.getFormatTime(startTime));
+		
+		long endTime = startTime + 24 * 3600 * 1000 - 1;
+		Log.e(TAG, "endTime = "+CommonUtils.getFormatTime(endTime));
+		
 	}
 
 	/**
 	 * 监听wifi的状态，记得在AndroidManifest加上权限
+	 * 
 	 * @author 邓耀宁
-	 *
+	 * 
 	 */
 	public class WifiStateReceiver extends BroadcastReceiver {
-		@SuppressLint("InlinedApi") @Override
+		private String wifi_ssid="";
+		private boolean hasWifi = false;
+		
+		@SuppressLint("InlinedApi")
+		@Override
 		public void onReceive(Context context, Intent intent) {
-		    if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
-		        int wifistate = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, WifiManager.WIFI_STATE_DISABLED);
-		        
-		        if (wifistate == WifiManager.WIFI_STATE_DISABLED) {
-		            /**
-		             * 如果关闭,结余本次wifi过程中 uid应用的 流量
-		             */
-		        	Log.e(TrafficListActivity.class.getName(), "wifi stop");
-		        	WifiInfo info = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-		        	recordWifiState(info.getSSID());
-		        } else if (wifistate == WifiManager.WIFI_STATE_ENABLED) {
-		            /**
-		             * 记录当前uid应用的流量.
-		             */
-		        	Log.e(TrafficListActivity.class.getName(), "wifi start");
-		        	WifiInfo info = intent.getParcelableExtra(WifiManager.EXTRA_WIFI_INFO);
-		        	recordWifiState(info.getSSID());
-		        }
-		    }
+			if (intent.getAction()
+					.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+				int wifistate = intent.getIntExtra(
+						WifiManager.EXTRA_WIFI_STATE,
+						WifiManager.WIFI_STATE_DISABLED);
+				/**
+				 * 仅仅判断wifi是否打开，并不判断是否连接！
+				 */
+				if (wifistate == WifiManager.WIFI_STATE_DISABLED) {
+					Log.e(TrafficListActivity.class.getName(), "wifi stop");
+
+				} else if (wifistate == WifiManager.WIFI_STATE_ENABLED) {
+
+					Log.e(TrafficListActivity.class.getName(), "wifi start");
+					hasWifi = true;
+				}
+			}
+
+			if (intent.getAction().equals(
+					WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
+				NetworkInfo info = intent
+						.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+				if (hasWifi) {
+					if (null != info && "WIFI".equals(info.getTypeName())) {
+						State state = info.getState();
+						if (state == State.CONNECTED) {
+							Log.e(TAG, "wifi isConnected");
+							WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+							WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+							wifi_ssid = wifiInfo.getSSID();
+							Log.e(TAG, "wifi ssid = " + wifi_ssid);
+
+							/**
+							 * 记录当前uid应用的流量。
+							 */
+							recordWifiState(wifi_ssid);
+						} else if (state == State.DISCONNECTED) {
+							Log.e(TAG, "wifi disConnected");
+							/**
+							 * 如果关闭,结余本次wifi过程中 uid应用的 流量
+							 */
+							recordWifiState(wifi_ssid);
+							hasWifi = false;
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -226,6 +282,7 @@ public class TrafficListActivity extends Activity {
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
+		Log.e(TAG, "onDestroy");
 		unregisterReceiver(wifiStateReceiver);
 	}
 	
