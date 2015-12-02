@@ -42,6 +42,10 @@
 
         <receiver android:name="com.example.testsqlite.TrafficListActivity$WifiStateReceiver" >
         </receiver>
+        
+        <receiver android:name="com.example.broadcasts.TrafficReceiver">
+            
+        </receiver>
     </application>
 
 </manifest>

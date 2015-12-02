@@ -62,22 +62,22 @@ public class MainActivity extends Activity {
 			@Override
 			protected Void doInBackground(Void... params) {
 				// TODO Auto-generated method stub
-				for (ApplicationInfo applicationInfo : appliactaionInfos) {
-					int uid = applicationInfo.uid; // 获得软件uid
-					// proc/uid_stat/10086
-					// 方法返回值 -1 代表的是应用程序没有产生流量 或者操作系统不支持流量统计
-					long tx = TrafficStats.getUidTxBytes(uid);// 发送的 上传的流量byte
-					long rx = TrafficStats.getUidRxBytes(uid);// 下载的流量 byte
-
-					TrafficInfo info = new TrafficInfo();
-					info.setPhoneNum("15277104415");
-					info.setNetType("4G");
-					info.setOperators("中国移动");
-					info.setData(rx + tx);
-					info.setTime(System.currentTimeMillis());
-					info.setBundleID(applicationInfo.packageName);
-					trafficInfo.add(info);
-				}
+//				for (ApplicationInfo applicationInfo : appliactaionInfos) {
+//					int uid = applicationInfo.uid; // 获得软件uid
+//					// proc/uid_stat/10086
+//					// 方法返回值 -1 代表的是应用程序没有产生流量 或者操作系统不支持流量统计
+//					long tx = TrafficStats.getUidTxBytes(uid);// 发送的 上传的流量byte
+//					long rx = TrafficStats.getUidRxBytes(uid);// 下载的流量 byte
+//
+//					TrafficInfo info = new TrafficInfo();
+//					info.setPhoneNum("15277104415");
+//					info.setNetType("4G");
+//					info.setOperators("中国移动");
+//					info.setData(rx + tx);
+//					info.setTime(System.currentTimeMillis());
+//					info.setBundleID(applicationInfo.packageName);
+//					trafficInfo.add(info);
+//				}
 				// TrafficStats.getMobileTxBytes();//获取手机3g/2g网络上传的总流量
 				// TrafficStats.getMobileRxBytes();//手机2g/3g下载的总流量
 				// TrafficStats.getTotalTxBytes();//手机全部网络接口 包括wifi，3g、2g上传的总流量
@@ -194,7 +194,7 @@ public class MainActivity extends Activity {
 					List<TrafficInfo> infos = DBUtils.getInstance(mContext)
 							.selectTrafficInfoByCurrentDay(
 									DBUtils.TABLE_TRAFFIC_INFO, "time",
-									"bundleID=?", new String[] {"com.tencent.mm"});
+									"bundleID=?", new String[] {"com.tencent.mm"},null,null,null);
 					return infos;
 				}
 

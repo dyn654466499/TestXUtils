@@ -155,33 +155,25 @@ public class DBUtils extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * 查询当前一天的数据
+	 * 查询当前一天的数据(默认按时间降序)
 	 * @param table 查询的表
 	 * @param timeField 表中表示时间的字段，如time，其存储时间的类型为long;如果字段名字为null或空，则返回null；
 	 * @param selection
 	 * @param selectionArgs
 	 * @return
 	 */
-	public List<TrafficInfo> selectTrafficInfoByCurrentDay(String table,String timeField,String selection, String[] selectionArgs){
+	public List<TrafficInfo> selectTrafficInfoByCurrentDay(String table,String timeField,String selection, String[] selectionArgs,String groupBy, String having, String orderBy){
 		if(TextUtils.isEmpty(timeField))return null;
 		
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(new Date());
-		//可以根据需要设置时区
-		cal.setTimeZone(TimeZone.getDefault());
-		cal.set(Calendar.HOUR_OF_DAY, 0);
-		cal.set(Calendar.MINUTE, 0);
-		cal.set(Calendar.SECOND, 0);
-		//毫秒可根据系统需要清除或不清除
-		cal.set(Calendar.MILLISECOND, 0);
-		long startTime = cal.getTimeInMillis();
-		long endTime = startTime + 24 * 3600 * 1000-1;
-		
 		String append = selection!=null?" and "+selection:null;
+		
+		orderBy = orderBy!=null?orderBy:timeField + " desc";
+		
 		List<TrafficInfo> infos = selectTrafficInfo(table,
 						null, timeField+">=? and "+timeField+"<=?"+append,
-						CommonUtils.mergeArray(new String[]{String.valueOf(startTime), String.valueOf(endTime)},selectionArgs), null,
-						null, null);
+				CommonUtils.mergeArray(new String[] {
+						String.valueOf(CommonUtils.getCurrentDayStartTime()), String.valueOf(CommonUtils.getCurrentDayEndTime()) },
+						selectionArgs), null, null, orderBy);
 		return infos;
 	}
 	

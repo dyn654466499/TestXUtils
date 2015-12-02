@@ -4,14 +4,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.apache.http.util.EncodingUtils;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -118,4 +121,78 @@ public class CommonUtils {
 		}
 		return null;
 	} 
+	
+	/**
+	 * 获取当天的开始时间，格式化后,如 2015-12-2 00:00:00
+	 * @return
+	 */
+	public static long getCurrentDayStartTime(){
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		cal.setTimeZone(TimeZone.getDefault());
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long startTime = cal.getTimeInMillis();
+		return startTime;
+	}
+	
+	/**
+	 * 获取当天的结束时间，格式化后,如 2015-12-2 23:59:59
+	 * @return long型数据，可根据情况格式化。
+	 */
+	public static long getCurrentDayEndTime(){
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		cal.setTimeZone(TimeZone.getDefault());
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long endTime = cal.getTimeInMillis();
+		return endTime;
+	}
+	
+	/**
+	 * 获取当月的开始时间，格式化后,如 2015-12-1 00:00:00
+	 * @return
+	 */
+	public static long getCurrentMonthStartTime(){
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		cal.setTimeZone(TimeZone.getDefault());
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long startTime = cal.getTimeInMillis();
+		return startTime;
+	}
+	
+	/**
+	 * 获取当月的结束时间，格式化后,如 2015-12-31 23:59:59
+	 * @return long型数据，可根据情况格式化。
+	 */
+	public static long getCurrentMonthEndTime(){
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		cal.setTimeZone(TimeZone.getDefault());
+		cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long endTime = cal.getTimeInMillis();
+		return endTime;
+	}
 }

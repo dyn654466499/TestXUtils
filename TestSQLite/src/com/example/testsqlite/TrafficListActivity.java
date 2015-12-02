@@ -5,10 +5,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -113,6 +114,7 @@ public class TrafficListActivity extends Activity {
 				listView_showTrafficState.setAdapter(adapter);
 				listView_showTrafficState.setOnItemClickListener(new OnItemClickListener() {
 
+
 					@Override
 					public void onItemClick(AdapterView<?> parent, View view,
 							int position, long id) {
@@ -131,21 +133,18 @@ public class TrafficListActivity extends Activity {
 		intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
 		registerReceiver(wifiStateReceiver, intentFilter);
 		
-		GregorianCalendar cal = new GregorianCalendar();
-		cal.setTime(new Date());
-		//可以根据需要设置时区
-		//cal.setTimeZone(TimeZone.getDefault());
-		cal.set(Calendar.HOUR_OF_DAY, 0);
-		cal.set(Calendar.MINUTE, 0);
-		cal.set(Calendar.SECOND, 0);
-		//毫秒可根据系统需要清除或不清除
-		cal.set(Calendar.MILLISECOND, 0);
-		long startTime = cal.getTimeInMillis();
-		Log.e(TAG, "startTime = "+CommonUtils.getFormatTime(startTime));
-		
-		long endTime = startTime + 24 * 3600 * 1000 - 1;
-		Log.e(TAG, "endTime = "+CommonUtils.getFormatTime(endTime));
-		
+		Log.e(TAG, "day startTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentDayStartTime()));
+		Log.e(TAG, "day endTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentDayEndTime()));
+		Log.e(TAG, "month startTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentMonthStartTime()));
+		Log.e(TAG, "month endTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentMonthEndTime()));
+
+//		Intent intent = new Intent(this, OnetimeAlarmReceiver.class);
+//		2
+//		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE, intent, 0);
+//		3
+//		AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+//		4
+//		alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (5 * 1000), pendingIntent);
 	}
 
 	/**
