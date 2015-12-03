@@ -3,8 +3,13 @@ package com.example.testsqlite;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.http.message.BasicNameValuePair;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -14,8 +19,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.State;
 import android.net.TrafficStats;
@@ -24,6 +32,7 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,6 +43,7 @@ import android.widget.ListView;
 
 import com.example.adapters.TrafficStateAdapter;
 import com.example.beans.TrafficDetailInfo;
+import com.example.services.TrafficStatService;
 import com.example.utils.CommonUtils;
 import com.example.utils.DBUtils;
 
@@ -68,39 +78,109 @@ public class TrafficListActivity extends Activity {
 			@Override
 			protected Void doInBackground(Void... params) {
 				// TODO Auto-generated method stub
-				 for(ApplicationInfo applicationInfo : appliactaionInfos){
-					 
-					    /**
-					     * 判断应用是否有网络访问权限，如果有，该应用才属于流量统计范围之内。
-					     */
-					 boolean hasInternetPermission = (PackageManager.PERMISSION_GRANTED ==   
-				                pm.checkPermission("android.permission.INTERNET", applicationInfo.packageName));
-					 if(hasInternetPermission){
-			        	int uid = applicationInfo.uid;    // 获得软件uid
-			        	//proc/uid_stat/10086
-			        	//方法返回值 -1 代表的是应用程序没有产生流量 或者操作系统不支持流量统计
-			        	long tx = TrafficStats.getUidTxBytes(uid);//发送的 上传的流量byte
-			        	long rx = TrafficStats.getUidRxBytes(uid);//下载的流量 byte
-			        	TrafficDetailInfo info = new TrafficDetailInfo();
-			        	info.setRx(rx);
-			        	info.setTx(tx);
-			        	info.setWifi_ssid("test");
-			        	info.setBundleID(applicationInfo.packageName);
-			        	info.setApp_icon(applicationInfo.loadIcon(pm));
-			        	info.setApp_name(applicationInfo.loadLabel(pm).toString());
-			        	trafficInfos.add(info);
-			        }
-				 }
-//			    TrafficStats.getMobileRxBytes();//获取手机通过 2G/3G 接收的字节流量总数
-//			    TrafficStats.getMobileRxPackets();//获取手机通过 2G/3G 接收的数据包总数
-//			    TrafficStats.getMobileTxBytes();//获取手机通过 2G/3G 发出的字节流量总数
-//			    TrafficStats.getMobileTxPackets();//获取手机通过 2G/3G 发出的数据包总数
-//			    TrafficStats.getTotalRxBytes();//获取手机通过所有网络方式接收的字节流量总数(包括 wifi)
-//			    TrafficStats.getTotalRxPackets();//获取手机通过所有网络方式接收的数据包总数(包括 wifi)
-//			    TrafficStats.getTotalTxBytes();//获取手机通过所有网络方式发送的字节流量总数(包括 wifi)
-//			    TrafficStats.getTotalTxPackets();//获取手机通过所有网络方式发送的数据包总数(包括 wifi)
-//			    TrafficStats.getUidRxBytes(uid);//获取手机指定 UID 对应的应程序用通过所有网络方式接收的字节流量总数(包括 wifi)
-//			    TrafficStats.getUidTxBytes(uid);//获取手机指定 UID 对应的应用程序通过所有网络方式发送的字节流量总数(包括 wifi)
+//				for (ApplicationInfo applicationInfo : appliactaionInfos) {
+//
+//					/**
+//					 * 判断应用是否有网络访问权限，如果有，该应用才属于流量统计范围之内。
+//					 */
+//					boolean hasInternetPermission = (PackageManager.PERMISSION_GRANTED == pm
+//							.checkPermission("android.permission.INTERNET",
+//									applicationInfo.packageName));
+//					if (hasInternetPermission) {
+//						int uid = applicationInfo.uid; // 获得软件uid
+//						// proc/uid_stat/10086
+//						// 方法返回值 -1 代表的是应用程序没有产生流量 或者操作系统不支持流量统计
+//						long tx = TrafficStats.getUidTxBytes(uid);// 发送的
+//																	// 上传的流量byte
+//						long rx = TrafficStats.getUidRxBytes(uid);// 下载的流量 byte
+//						TrafficDetailInfo info = new TrafficDetailInfo();
+//						info.setRx(rx);
+//						info.setTx(tx);
+//						info.setWifi_ssid("test");
+//						info.setBundleID(applicationInfo.packageName);
+//						info.setApp_icon(applicationInfo.loadIcon(pm));
+//						info.setApp_name(applicationInfo.loadLabel(pm)
+//								.toString());
+//						trafficInfos.add(info);
+//					}
+//
+//				}
+				
+				SharedPreferences preferences = CommonUtils
+						.getPackageNamePreferences(mContext);
+				if (preferences == null) {
+					Log.e(TAG,"preferences == null");
+					preferences = mContext.getSharedPreferences(
+							"savePackageName", Context.MODE_PRIVATE);
+					Editor editor = preferences.edit();
+					for (ApplicationInfo applicationInfo : appliactaionInfos) {
+						/**
+						 * 判断应用是否有网络访问权限，如果有，该应用才属于流量统计范围之内。
+						 */
+						boolean hasInternetPermission = (PackageManager.PERMISSION_GRANTED == pm
+								.checkPermission("android.permission.INTERNET",
+										applicationInfo.packageName));
+						if (hasInternetPermission) {
+							editor.putInt(applicationInfo.packageName,
+									applicationInfo.uid);
+							int uid = applicationInfo.uid; // 获得软件uid
+							// 方法返回值 -1 代表的是应用程序没有产生流量 或者操作系统不支持流量统计
+							long tx = TrafficStats.getUidTxBytes(uid);// 发送的
+																		// 上传的流量byte
+							long rx = TrafficStats.getUidRxBytes(uid);// 下载的流量 byte
+							TrafficDetailInfo info = new TrafficDetailInfo();
+							info.setRx(rx);
+							info.setTx(tx);
+							info.setWifi_ssid("test");
+							info.setBundleID(applicationInfo.packageName);
+							info.setApp_icon(applicationInfo.loadIcon(pm));
+							info.setApp_name(applicationInfo.loadLabel(pm)
+									.toString());
+							trafficInfos.add(info);
+						}
+						editor.commit();
+					}
+				} else {
+					Map<String, Integer> map = (Map<String, Integer>) preferences
+							.getAll();
+					Iterator<Entry<String, Integer>> iterator = map.entrySet()
+							.iterator();
+					while (iterator.hasNext()) {
+						Entry<String, Integer> entry = iterator.next();
+						long tx = TrafficStats.getUidTxBytes(entry.getValue());// 上传的流量byte
+						long rx = TrafficStats.getUidRxBytes(entry.getValue());// 下载的流量 byte
+						TrafficDetailInfo info = new TrafficDetailInfo();
+						info.setRx(rx);
+						info.setTx(tx);
+						info.setWifi_ssid("test");
+						info.setBundleID(entry.getKey());
+						try {
+							info.setApp_icon(pm.getApplicationIcon(entry.getKey()));
+							info.setApp_name(pm.getApplicationLabel(pm.getApplicationInfo(entry.getKey(), PackageManager.GET_META_DATA)).toString());
+						} catch (NameNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						trafficInfos.add(info);
+					}
+				}
+				//DBUtils.getInstance(mContext).insertTrafficInfo(trafficInfos);
+				// TrafficStats.getMobileRxBytes();//获取手机通过 2G/3G 接收的字节流量总数
+				// TrafficStats.getMobileRxPackets();//获取手机通过 2G/3G 接收的数据包总数
+				// TrafficStats.getMobileTxBytes();//获取手机通过 2G/3G 发出的字节流量总数
+				// TrafficStats.getMobileTxPackets();//获取手机通过 2G/3G 发出的数据包总数
+				// TrafficStats.getTotalRxBytes();//获取手机通过所有网络方式接收的字节流量总数(包括
+				// wifi)
+				// TrafficStats.getTotalRxPackets();//获取手机通过所有网络方式接收的数据包总数(包括
+				// wifi)
+				// TrafficStats.getTotalTxBytes();//获取手机通过所有网络方式发送的字节流量总数(包括
+				// wifi)
+				// TrafficStats.getTotalTxPackets();//获取手机通过所有网络方式发送的数据包总数(包括
+				// wifi)
+				// TrafficStats.getUidRxBytes(uid);//获取手机指定 UID
+				// 对应的应程序用通过所有网络方式接收的字节流量总数(包括 wifi)
+				// TrafficStats.getUidTxBytes(uid);//获取手机指定 UID
+				// 对应的应用程序通过所有网络方式发送的字节流量总数(包括 wifi)
 				return null;
 			}
 
@@ -133,18 +213,16 @@ public class TrafficListActivity extends Activity {
 		intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
 		registerReceiver(wifiStateReceiver, intentFilter);
 		
-		Log.e(TAG, "day startTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentDayStartTime()));
-		Log.e(TAG, "day endTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentDayEndTime()));
+		Log.e(TAG, "day startTime = "+CommonUtils.getFormatTime(CommonUtils.getTodayStartTime()));
+		Log.e(TAG, "day endTime = "+CommonUtils.getFormatTime(CommonUtils.getTodayEndTime()));
 		Log.e(TAG, "month startTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentMonthStartTime()));
 		Log.e(TAG, "month endTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentMonthEndTime()));
 
-//		Intent intent = new Intent(this, OnetimeAlarmReceiver.class);
-//		2
-//		PendingIntent pendingIntent = PendingIntent.getBroadcast(context, REQUEST_CODE, intent, 0);
-//		3
-//		AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-//		4
-//		alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (5 * 1000), pendingIntent);
+		Intent intent = new Intent(this, TrafficStatService.class);
+		PendingIntent pendingIntent = PendingIntent.getService(mContext, 0, intent, 0);
+		AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 5 * 1000,pendingIntent);
+		//alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5 * 1000,pendingIntent);
 	}
 
 	/**
@@ -160,53 +238,53 @@ public class TrafficListActivity extends Activity {
 		@SuppressLint("InlinedApi")
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (intent.getAction()
-					.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
-				int wifistate = intent.getIntExtra(
-						WifiManager.EXTRA_WIFI_STATE,
-						WifiManager.WIFI_STATE_DISABLED);
-				/**
-				 * 仅仅判断wifi是否打开，并不判断是否连接！
-				 */
-				if (wifistate == WifiManager.WIFI_STATE_DISABLED) {
-					Log.e(TrafficListActivity.class.getName(), "wifi stop");
-
-				} else if (wifistate == WifiManager.WIFI_STATE_ENABLED) {
-
-					Log.e(TrafficListActivity.class.getName(), "wifi start");
-					hasWifi = true;
-				}
-			}
-
-			if (intent.getAction().equals(
-					WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
-				NetworkInfo info = intent
-						.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-				if (hasWifi) {
-					if (null != info && "WIFI".equals(info.getTypeName())) {
-						State state = info.getState();
-						if (state == State.CONNECTED) {
-							Log.e(TAG, "wifi isConnected");
-							WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-							WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-							wifi_ssid = wifiInfo.getSSID();
-							Log.e(TAG, "wifi ssid = " + wifi_ssid);
-
-							/**
-							 * 记录当前uid应用的流量。
-							 */
-							recordWifiState(wifi_ssid);
-						} else if (state == State.DISCONNECTED) {
-							Log.e(TAG, "wifi disConnected");
-							/**
-							 * 如果关闭,结余本次wifi过程中 uid应用的 流量
-							 */
-							recordWifiState(wifi_ssid);
-							hasWifi = false;
-						}
-					}
-				}
-			}
+//			if (intent.getAction()
+//					.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+//				int wifistate = intent.getIntExtra(
+//						WifiManager.EXTRA_WIFI_STATE,
+//						WifiManager.WIFI_STATE_DISABLED);
+//				/**
+//				 * 仅仅判断wifi是否打开，并不判断是否连接！
+//				 */
+//				if (wifistate == WifiManager.WIFI_STATE_DISABLED) {
+//					Log.e(TrafficListActivity.class.getName(), "wifi stop");
+//
+//				} else if (wifistate == WifiManager.WIFI_STATE_ENABLED) {
+//
+//					Log.e(TrafficListActivity.class.getName(), "wifi start");
+//					hasWifi = true;
+//				}
+//			}
+//
+//			if (intent.getAction().equals(
+//					WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
+//				NetworkInfo info = intent
+//						.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+//				if (hasWifi) {
+//					if (null != info && "WIFI".equals(info.getTypeName())) {
+//						State state = info.getState();
+//						if (state == State.CONNECTED) {
+//							Log.e(TAG, "wifi isConnected");
+//							WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+//							WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+//							wifi_ssid = wifiInfo.getSSID();
+//							Log.e(TAG, "wifi ssid = " + wifi_ssid);
+//
+//							/**
+//							 * 记录当前uid应用的流量。
+//							 */
+//							recordWifiState(wifi_ssid);
+//						} else if (state == State.DISCONNECTED) {
+//							Log.e(TAG, "wifi disConnected");
+//							/**
+//							 * 如果关闭,结余本次wifi过程中 uid应用的 流量
+//							 */
+//							recordWifiState(wifi_ssid);
+//							hasWifi = false;
+//						}
+//					}
+//				}
+//			}
 		}
 	}
 	

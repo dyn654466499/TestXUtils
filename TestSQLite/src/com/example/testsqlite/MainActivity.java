@@ -171,28 +171,8 @@ public class MainActivity extends Activity {
 				@Override
 				protected List<TrafficInfo> doInBackground(Void... params) {
 					// TODO Auto-generated method stub
-					// GregorianCalendar cal = new GregorianCalendar();
-					// cal.setTime(new Date());
-					// //可以根据需要设置时区
-					// cal.setTimeZone(TimeZone.getDefault());
-					// cal.set(Calendar.HOUR_OF_DAY, 0);
-					// cal.set(Calendar.MINUTE, 0);
-					// cal.set(Calendar.SECOND, 0);
-					// //毫秒可根据系统需要清除或不清除
-					// cal.set(Calendar.MILLISECOND, 0);
-					// long startTime = cal.getTimeInMillis();
-					// long endTime = startTime + 24 * 3600 * 1000-1;
-					//
-					// List<TrafficInfo> infos = DBUtils.getInstance(mContext)
-					// .selectTrafficInfo(DBUtils.TABLE_TRAFFIC_INFO,
-					// null, "bundleID=? and time>=? and time<=?",
-					// new String[] {
-					// "com.tencent.mm",String.valueOf(startTime),
-					// String.valueOf(endTime)}, null,
-					// null, null);
-
 					List<TrafficInfo> infos = DBUtils.getInstance(mContext)
-							.selectTrafficInfoByCurrentDay(
+							.selectTrafficInfoByToday(
 									DBUtils.TABLE_TRAFFIC_INFO, "time",
 									"bundleID=?", new String[] {"com.tencent.mm"},null,null,null);
 					return infos;

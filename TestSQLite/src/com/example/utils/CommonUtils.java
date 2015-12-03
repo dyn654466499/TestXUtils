@@ -14,6 +14,8 @@ import java.util.TimeZone;
 import org.apache.http.util.EncodingUtils;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -126,7 +128,7 @@ public class CommonUtils {
 	 * 获取当天的开始时间，格式化后,如 2015-12-2 00:00:00
 	 * @return
 	 */
-	public static long getCurrentDayStartTime(){
+	public static long getTodayStartTime(){
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTime(new Date());
 		//可以根据需要设置时区
@@ -144,11 +146,49 @@ public class CommonUtils {
 	 * 获取当天的结束时间，格式化后,如 2015-12-2 23:59:59
 	 * @return long型数据，可根据情况格式化。
 	 */
-	public static long getCurrentDayEndTime(){
+	public static long getTodayEndTime(){
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTime(new Date());
 		//可以根据需要设置时区
 		cal.setTimeZone(TimeZone.getDefault());
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long endTime = cal.getTimeInMillis();
+		return endTime;
+	}
+	
+	/**
+	 * 获取昨天的开始时间，格式化后,如 2015-12-2 00:00:00
+	 * @return
+	 */
+	public static long getYesterDayStartTime(){
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		cal.setTimeZone(TimeZone.getDefault());
+		cal.add(Calendar.DAY_OF_MONTH, -1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		//毫秒可根据系统需要清除或不清除
+		cal.set(Calendar.MILLISECOND, 0);
+		long startTime = cal.getTimeInMillis();
+		return startTime;
+	}
+	
+	/**
+	 * 获取昨天的结束时间，格式化后,如 2015-12-2 23:59:59
+	 * @return long型数据，可根据情况格式化。
+	 */
+	public static long getYesterDayEndTime(){
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTime(new Date());
+		//可以根据需要设置时区
+		cal.setTimeZone(TimeZone.getDefault());
+		cal.add(Calendar.DAY_OF_MONTH, -1);
 		cal.set(Calendar.HOUR_OF_DAY, 23);
 		cal.set(Calendar.MINUTE, 59);
 		cal.set(Calendar.SECOND, 59);
@@ -167,7 +207,7 @@ public class CommonUtils {
 		cal.setTime(new Date());
 		//可以根据需要设置时区
 		cal.setTimeZone(TimeZone.getDefault());
-		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.DAY_OF_MONTH, 1);//前一天 cal.add(Calendar.DAY_OF_MONTH, -1)，注意是add。
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
@@ -194,5 +234,19 @@ public class CommonUtils {
 		cal.set(Calendar.MILLISECOND, 0);
 		long endTime = cal.getTimeInMillis();
 		return endTime;
+	}
+	
+	/**
+	 * 返回记录所有App packageName(key)和uid(value)的SharedPreferences。
+	 * @param context
+	 * @return 如果事先没有记录，返回null。
+	 */
+	public static SharedPreferences getPackageNamePreferences(Context context) {
+		SharedPreferences preferences = context.getSharedPreferences(
+				"savePackageName", Context.MODE_PRIVATE);
+		if (preferences.contains(context.getPackageName()))
+			return preferences;
+		
+		return null;
 	}
 }

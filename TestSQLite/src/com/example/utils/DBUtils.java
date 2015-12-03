@@ -155,24 +155,47 @@ public class DBUtils extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * 查询当前一天的数据(默认按时间降序)
+	 * 查询当前一天的数据(默认按时间升序)
 	 * @param table 查询的表
 	 * @param timeField 表中表示时间的字段，如time，其存储时间的类型为long;如果字段名字为null或空，则返回null；
 	 * @param selection
 	 * @param selectionArgs
 	 * @return
 	 */
-	public List<TrafficInfo> selectTrafficInfoByCurrentDay(String table,String timeField,String selection, String[] selectionArgs,String groupBy, String having, String orderBy){
+	public List<TrafficInfo> selectTrafficInfoByToday(String table,String timeField,String selection, String[] selectionArgs,String groupBy, String having, String orderBy){
 		if(TextUtils.isEmpty(timeField))return null;
 		
 		String append = selection!=null?" and "+selection:null;
 		
-		orderBy = orderBy!=null?orderBy:timeField + " desc";
+		orderBy = orderBy!=null?orderBy:timeField + " asc";
 		
 		List<TrafficInfo> infos = selectTrafficInfo(table,
 						null, timeField+">=? and "+timeField+"<=?"+append,
 				CommonUtils.mergeArray(new String[] {
-						String.valueOf(CommonUtils.getCurrentDayStartTime()), String.valueOf(CommonUtils.getCurrentDayEndTime()) },
+						String.valueOf(CommonUtils.getTodayStartTime()), String.valueOf(CommonUtils.getTodayEndTime()) },
+						selectionArgs), null, null, orderBy);
+		return infos;
+	}
+	
+	/**
+	 * 查询昨天的数据(默认按时间升序)
+	 * @param table 查询的表
+	 * @param timeField 表中表示时间的字段，如time，其存储时间的类型为long;如果字段名字为null或空，则返回null；
+	 * @param selection
+	 * @param selectionArgs
+	 * @return
+	 */
+	public List<TrafficInfo> selectTrafficInfoByYesterday(String table,String timeField,String selection, String[] selectionArgs,String groupBy, String having, String orderBy){
+		if(TextUtils.isEmpty(timeField))return null;
+		
+		String append = selection!=null?" and "+selection:null;
+		
+		orderBy = orderBy!=null?orderBy:timeField + " asc";
+		
+		List<TrafficInfo> infos = selectTrafficInfo(table,
+						null, timeField+">=? and "+timeField+"<=?"+append,
+				CommonUtils.mergeArray(new String[] {
+						String.valueOf(CommonUtils.getYesterDayStartTime()), String.valueOf(CommonUtils.getYesterDayEndTime())},
 						selectionArgs), null, null, orderBy);
 		return infos;
 	}

@@ -19,7 +19,7 @@ public class TrafficInfo {
 	protected String bundleID="";
 	
 	//插入时间
-	protected long time=0;
+	protected long time=System.currentTimeMillis();
 	
 	//手机号
 	protected String phoneNum = tm.getLine1Number();
