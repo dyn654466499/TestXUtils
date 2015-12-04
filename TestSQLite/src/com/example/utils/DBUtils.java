@@ -45,12 +45,19 @@ public class DBUtils extends SQLiteOpenHelper {
 		return dbHelper;
 	}
 
-	public DBUtils(Context context) {
+	public static DBUtils getInstance(Context context,String name, CursorFactory factory,int version) {
+		if (dbHelper == null) {
+			dbHelper = new DBUtils(context, name, factory, version);
+		}
+		return dbHelper;
+	}
+	
+	private DBUtils(Context context) {
 		super(context, DBName, null, 1);
 		Log.i("SQLiteHelper", "SQLiteHelper>>>>>>>>start");
 	}
 
-	public DBUtils(Context context, String name, CursorFactory factory,
+	private DBUtils(Context context, String name, CursorFactory factory,
 			int version) {
 		super(context, name, factory, version);
 	}
