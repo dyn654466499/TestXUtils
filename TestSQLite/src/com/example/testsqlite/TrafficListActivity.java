@@ -198,7 +198,10 @@ public class TrafficListActivity extends Activity {
 					public void onItemClick(AdapterView<?> parent, View view,
 							int position, long id) {
 						// TODO Auto-generated method stub
-						mContext.startActivity(new Intent(mContext,MainActivity.class));
+						Intent intent = new Intent(mContext,AppTrafficDayActivity.class);
+					    intent.putExtra("packageName", trafficInfos.get(position).getBundleID());
+						mContext.startActivity(intent);
+						
 					}
 				});
 			}

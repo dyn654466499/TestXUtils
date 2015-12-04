@@ -44,19 +44,24 @@
             </intent-filter>
         </service>
 
-        <receiver android:name="com.example.broadcasts.WifiStateReceiver" 
-            android:exported="true">
+        <receiver
+            android:name="com.example.broadcasts.WifiStateReceiver"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
                 <action android:name="android.net.wifi.STATE_CHANGE" />
             </intent-filter>
         </receiver>
-        
         <receiver android:name="com.example.broadcasts.TrafficReceiver" >
             <intent-filter>
                 <action android:name="com.example.broadcasts.TrafficReceiver" />
             </intent-filter>
         </receiver>
+
+        <activity
+            android:name=".AppTrafficDayActivity"
+            android:label="@string/title_activity_t" >
+        </activity>
     </application>
 
 </manifest>
