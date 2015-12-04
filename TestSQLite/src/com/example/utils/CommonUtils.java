@@ -19,6 +19,8 @@ import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import android.widget.Toast;
 
+import static com.example.contants.Const.*;
+
 /**
  * 公共的工具类
  * @author 邓耀宁
@@ -243,7 +245,7 @@ public class CommonUtils {
 	 */
 	public static SharedPreferences getPackageNamePreferences(Context context) {
 		SharedPreferences preferences = context.getSharedPreferences(
-				"savePackageName", Context.MODE_PRIVATE);
+				PREFERENCE_SAVE_PACKAGE, Context.MODE_PRIVATE);
 		if (preferences.contains(context.getPackageName()))
 			return preferences;
 		

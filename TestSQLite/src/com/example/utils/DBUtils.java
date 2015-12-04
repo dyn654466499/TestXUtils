@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
+import com.example.beans.AppTrafficDayInfo;
 import com.example.beans.TrafficInfo;
 
 import android.content.ContentValues;
@@ -35,6 +36,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	private static final String DBName = "TrafficDoctorDB";
 	public static final String TABLE_TRAFFIC_INFO = "TrafficDoctorInfo";
 	public static final String TABLE_WIFI_TRAFFIC_INFO = "WifiTrafficInfo";
+	public static final String TABLE_APP_TRAFFIC_DAY_INFO = "AppTrafficDayInfo";
 
 	public static DBUtils getInstance(Context context) {
 		if (dbHelper == null) {
@@ -73,14 +75,23 @@ public class DBUtils extends SQLiteOpenHelper {
 				+ "company varchar(20)," + "planName varchar(50) primary key,"
 				+ "planTraffic int," + "planPrice int)";
 		// String DATE_TRIGGER ="";
+		
 //		String CREATE_WifiTrafficInfo_SQL = "CREATE TABLE " + TABLE_WIFI_TRAFFIC_INFO
+//		        + "(" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
 //				+ "bundleID varchar(30) primary key,"
 //				+ "wifi_ssid varchar(30),"
 //				+ "time TIMESTAMP default (datetime('now', 'localtime'))," 
 //				+ "data long)";
+		String CREATE_APPTrafficDayInfo_SQL = "CREATE TABLE " + TABLE_APP_TRAFFIC_DAY_INFO
+				+ "(" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ "bundleID varchar(30) primary key,"
+				+ "time TIMESTAMP default (datetime('now', 'localtime'))," 
+				+ "gprs long,"
+				+ "wifi long,"
+				+ "data long)";
 		
 		db.execSQL(CREATE_TrafficInfo_SQL);
-		//db.execSQL(CREATE_WifiTrafficInfo_SQL);
+		db.execSQL(CREATE_APPTrafficDayInfo_SQL);
 
 		Log.i("SQLiteHelper", "onCreate>>>>>>>>>>>start");
 	}
@@ -272,6 +283,35 @@ public class DBUtils extends SQLiteOpenHelper {
 		}
 	}
 	
+	
+	public void insertAppTrafficDayInfo(List<AppTrafficDayInfo> infos) {
+		if (infos == null)
+			return;
+
+		SQLiteDatabase db = getWritableDatabase();
+
+		String sql = "insert into "+TABLE_APP_TRAFFIC_DAY_INFO+"(bundleID,time,gprs,wifi,data) values(?,?,?,?,?)";
+		SQLiteStatement stat = db.compileStatement(sql);
+
+		db.beginTransaction();
+		try {
+			for (AppTrafficDayInfo info : infos) {
+				stat.bindString(1, info.getBundleID());
+				stat.bindLong(2, info.getTime());
+				stat.bindLong(3, info.getGprs());
+				stat.bindLong(4, info.getWifi());
+				stat.bindLong(5, info.getData());
+				stat.executeInsert();
+			}
+			db.setTransactionSuccessful();
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			db.endTransaction();
+			db.close();
+		}
+	}
+	
 	/**
 	 * 删除数据（可批量删除）
 	 * 
@@ -296,7 +336,6 @@ public class DBUtils extends SQLiteOpenHelper {
 
 	/**
 	 * 更新数据（可批量更新）
-	 * 
 	 * @param table
 	 * @param values
 	 * @param whereClause
