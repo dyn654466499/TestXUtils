@@ -35,7 +35,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	private static DBUtils dbHelper = null;
 	private static final String DBName = "TrafficDoctorDB";
 	public static final String TABLE_TRAFFIC_INFO = "TrafficDoctorInfo";
-	public static final String TABLE_WIFI_TRAFFIC_INFO = "WifiTrafficInfo";
+	//public static final String TABLE_WIFI_TRAFFIC_INFO = "WifiTrafficInfo";
 	public static final String TABLE_APP_TRAFFIC_DAY_INFO = "AppTrafficDayInfo";
 
 	public static DBUtils getInstance(Context context) {
@@ -72,11 +72,11 @@ public class DBUtils extends SQLiteOpenHelper {
 
 		String CREATE_TrafficInfo_SQL = "CREATE TABLE " + TABLE_TRAFFIC_INFO
 				+ "(" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ "phoneNum varchar(20)," + "imei varchar(20),"
-				+ "netType varchar(10)," + "wifi_ssid varchar(30),"
-				+ "operators varchar(20),"
+				+ "phoneNum varchar(20)," + "imei varchar(30),"
+				+ "netType varchar(10)," + "wifi_ssid varchar(50),"
+				+ "operators varchar(30),"
 				+ "time TIMESTAMP default (datetime('now', 'localtime')),"
-				+ "data long," + "bundleID varchar(30))";
+				+ "data long," + "bundleID varchar(40))";
 
 		String CREATE_Plans_SQL = "CREATE TABLE Plans("
 				+ "company varchar(20)," + "planName varchar(50) primary key,"
@@ -85,13 +85,13 @@ public class DBUtils extends SQLiteOpenHelper {
 		
 //		String CREATE_WifiTrafficInfo_SQL = "CREATE TABLE " + TABLE_WIFI_TRAFFIC_INFO
 //		        + "(" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-//				+ "bundleID varchar(30) primary key,"
+//				+ "bundleID varchar(30),"
 //				+ "wifi_ssid varchar(30),"
 //				+ "time TIMESTAMP default (datetime('now', 'localtime'))," 
 //				+ "data long)";
 		String CREATE_APPTrafficDayInfo_SQL = "CREATE TABLE " + TABLE_APP_TRAFFIC_DAY_INFO
-				+ "(" + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ "bundleID varchar(30) primary key,"
+				+ "("+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ "bundleID varchar(40),"
 				+ "time TIMESTAMP default (datetime('now', 'localtime'))," 
 				+ "gprs long,"
 				+ "wifi long,"
@@ -173,7 +173,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * 查询当前一天的数据(默认按时间升序)
+	 * 查询当天的数据(默认按时间升序)
 	 * @param table 查询的表
 	 * @param timeField 表中表示时间的字段，如time，其存储时间的类型为long;如果字段名字为null或空，则返回null；
 	 * @param selection
@@ -191,12 +191,18 @@ public class DBUtils extends SQLiteOpenHelper {
 						null, timeField+">=? and "+timeField+"<=?"+append,
 				CommonUtils.mergeArray(new String[] {
 						String.valueOf(CommonUtils.getTodayStartTime()), String.valueOf(CommonUtils.getTodayEndTime()) },
-						selectionArgs), null, null, orderBy);
+						selectionArgs), groupBy, having, orderBy);
 		return infos;
 	}
 	
 	/**
-	 * 查询昨天的数据(默认按时间升序)
+	 * 查询昨天的数据(默认按时间升序)<br>例如统计app的单日流量，获取昨天该app记录的流量数据，当天最后一次记录的流量减去当天第一次记录的流量=该app当日的流量
+	 * <br>String[] temp = new String[]{"com.tencent.mm"};<br>
+			
+			List<TrafficInfo> infos = DBUtils.getInstance(context).selectTrafficInfoByYesterday(DBUtils.TABLE_TRAFFIC_INFO, "time", "bundleID=?",temp, null, null, null);
+			<br>if(infos!=null&&infos.size()>1)
+			 Log.e(TAG, "packageName = "+temp[0]+",开始时间="+CommonUtils.getFormatTime(infos.get(0).getTime())+"|使用流量="+CommonUtils.getFormatTrafficSize(infos.get(0).getData())+
+			    ",结束时间="+CommonUtils.getFormatTime(infos.get(infos.size()-1).getTime())+"|使用流量="+CommonUtils.getFormatTrafficSize(infos.get(infos.size()-1).getData()));
 	 * @param table 查询的表
 	 * @param timeField 表中表示时间的字段，如time，其存储时间的类型为long;如果字段名字为null或空，则返回null；
 	 * @param selection
@@ -206,7 +212,7 @@ public class DBUtils extends SQLiteOpenHelper {
 	public List<TrafficInfo> selectTrafficInfoByYesterday(String table,String timeField,String selection, String[] selectionArgs,String groupBy, String having, String orderBy){
 		if(TextUtils.isEmpty(timeField))return null;
 		
-		String append = selection!=null?" and "+selection:null;
+		String append = selection!=null ? " and "+selection : null;
 		
 		orderBy = orderBy!=null?orderBy:timeField + " asc";
 		
@@ -214,45 +220,10 @@ public class DBUtils extends SQLiteOpenHelper {
 						null, timeField+">=? and "+timeField+"<=?"+append,
 				CommonUtils.mergeArray(new String[] {
 						String.valueOf(CommonUtils.getYesterDayStartTime()), String.valueOf(CommonUtils.getYesterDayEndTime())},
-						selectionArgs), null, null, orderBy);
+						selectionArgs), groupBy, having, orderBy);
 		return infos;
 	}
 	
-	/**
-	 * 插入流量信息数据（可批量插入）
-	 * 
-	 * @param trafficInfos 封装TrafficInfo的列表
-	 */
-	public void insertWifiTrafficInfo(List<TrafficInfo> trafficInfos) {
-		if (trafficInfos == null)
-			return;
-
-		SQLiteDatabase db = getWritableDatabase();
-
-		String sql = "insert into "+TABLE_WIFI_TRAFFIC_INFO+"(bundleID,wifi_ssid,time,data) values(?,?,?,?,?,?,?,?)";
-		SQLiteStatement stat = db.compileStatement(sql);
-
-		db.beginTransaction();
-		try {
-			for (TrafficInfo info : trafficInfos) {
-				stat.bindString(1, info.getPhoneNum());
-				stat.bindString(2, info.getImei());
-				stat.bindString(3, info.getNetType());
-				stat.bindString(4, info.getWifi_ssid());
-				stat.bindString(5, info.getOperators());
-				stat.bindLong(6, info.getTime());
-				stat.bindLong(7, info.getData());
-				stat.bindString(8, info.getBundleID());
-				stat.executeInsert();
-			}
-			db.setTransactionSuccessful();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			db.endTransaction();
-			db.close();
-		}
-	}
 
 	/**
 	 * 插入流量信息数据（可批量插入）
@@ -442,4 +413,40 @@ public class DBUtils extends SQLiteOpenHelper {
 	// db.close();
 	// return appList;
 	// }
+	
+//	/**
+//	 * 插入Wifi流量信息数据（可批量插入）
+//	 * 
+//	 * @param trafficInfos 封装TrafficInfo的列表
+//	 */
+//	public void insertWifiTrafficInfo(List<TrafficInfo> trafficInfos) {
+//		if (trafficInfos == null)
+//			return;
+//
+//		SQLiteDatabase db = getWritableDatabase();
+//
+//		String sql = "insert into "+TABLE_WIFI_TRAFFIC_INFO+"(bundleID,wifi_ssid,time,data) values(?,?,?,?,?,?,?,?)";
+//		SQLiteStatement stat = db.compileStatement(sql);
+//
+//		db.beginTransaction();
+//		try {
+//			for (TrafficInfo info : trafficInfos) {
+//				stat.bindString(1, info.getPhoneNum());
+//				stat.bindString(2, info.getImei());
+//				stat.bindString(3, info.getNetType());
+//				stat.bindString(4, info.getWifi_ssid());
+//				stat.bindString(5, info.getOperators());
+//				stat.bindLong(6, info.getTime());
+//				stat.bindLong(7, info.getData());
+//				stat.bindString(8, info.getBundleID());
+//				stat.executeInsert();
+//			}
+//			db.setTransactionSuccessful();
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		} finally {
+//			db.endTransaction();
+//			db.close();
+//		}
+//	}
 }

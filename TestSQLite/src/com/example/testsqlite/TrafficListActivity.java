@@ -43,6 +43,7 @@ import android.widget.ListView;
 
 import com.example.adapters.TrafficStateAdapter;
 import com.example.beans.TrafficDetailInfo;
+import com.example.beans.TrafficInfo;
 import com.example.services.TrafficStatService;
 import com.example.utils.CommonUtils;
 import com.example.utils.DBUtils;
@@ -130,6 +131,7 @@ public class TrafficListActivity extends Activity {
 							TrafficDetailInfo info = new TrafficDetailInfo();
 							info.setRx(rx);
 							info.setTx(tx);
+							info.setData(rx+tx);
 							info.setWifi_ssid("test");
 							info.setBundleID(applicationInfo.packageName);
 							info.setApp_icon(applicationInfo.loadIcon(pm));
@@ -151,6 +153,7 @@ public class TrafficListActivity extends Activity {
 						TrafficDetailInfo info = new TrafficDetailInfo();
 						info.setRx(rx);
 						info.setTx(tx);
+						info.setData(rx+tx);
 						info.setWifi_ssid("test");
 						info.setBundleID(entry.getKey());
 						try {
@@ -204,6 +207,7 @@ public class TrafficListActivity extends Activity {
 						
 					}
 				});
+				DBUtils.getInstance(mContext).insertTrafficInfo(trafficInfos);
 			}
 			
 		}.execute();
@@ -212,12 +216,19 @@ public class TrafficListActivity extends Activity {
 		Log.e(TAG, "day endTime = "+CommonUtils.getFormatTime(CommonUtils.getTodayEndTime()));
 		Log.e(TAG, "month startTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentMonthStartTime()));
 		Log.e(TAG, "month endTime = "+CommonUtils.getFormatTime(CommonUtils.getCurrentMonthEndTime()));
-
+        
+		//CommonUtils.getSIMCardInfo(this);
 //		Intent intent = new Intent(this, TrafficStatService.class);
 //		PendingIntent pendingIntent = PendingIntent.getService(mContext, 0, intent, 0);
 //		AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 //		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 5 * 1000,pendingIntent);
 		//alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 5 * 1000,pendingIntent);
+		
+		String[] temp = new String[]{"com.tencent.mm"};
+		List<TrafficInfo> infos = DBUtils.getInstance(this).selectTrafficInfoByToday(DBUtils.TABLE_TRAFFIC_INFO, "time", "bundleID=?",temp, null, null, null);
+		if(infos!=null&&infos.size()>1)
+		 Log.e(TAG, "packageName = "+temp[0]+",开始时间="+CommonUtils.getFormatTime(infos.get(0).getTime())+"|使用流量="+CommonUtils.getFormatTrafficSize(infos.get(0).getData())+
+		    ",结束时间="+CommonUtils.getFormatTime(infos.get(infos.size()-1).getTime())+"|使用流量="+CommonUtils.getFormatTrafficSize(infos.get(infos.size()-1).getData()));
 	}
 
 	@Override

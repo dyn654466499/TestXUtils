@@ -1,5 +1,7 @@
 package com.example.utils;
 
+import static com.example.contants.Const.PREFERENCE_SAVE_PACKAGE;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -8,6 +10,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -15,11 +19,19 @@ import org.apache.http.util.EncodingUtils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.Environment;
+import android.telephony.CellLocation;
+import android.telephony.NeighboringCellInfo;
+import android.telephony.SmsManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
-
-import static com.example.contants.Const.*;
 
 /**
  * 公共的工具类
@@ -250,5 +262,168 @@ public class CommonUtils {
 			return preferences;
 		
 		return null;
+	}
+	
+	/**
+	 * 判断是否有SD卡
+	 * @return
+	 */
+	public static boolean hasSdcard() {
+		String state = Environment.getExternalStorageState();
+		if (state.equals(Environment.MEDIA_MOUNTED)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	//==================================                ===============================
+	/**
+	 * 返回指定包名的应用信息类
+	 * @param context 上下文
+	 * @param bundleID 指定的包名
+	 * @return 返回ApplicationInfo对象，根据需求获取相应的参数；如果不存在则返回null
+	 * @category
+	 *  获取Drawable图标：info.loadIcon(PackageManager);<br>
+	*	获取应用名字：info.loadLabel(PackageManager).toString();<br>
+	*	获取进程名：info.processName;<br>
+	 */
+	public static ApplicationInfo getAppInfo(Context context,String bundleID){
+		PackageManager pm = context.getPackageManager();
+		ApplicationInfo info = null;
+		try {
+			info = pm.getApplicationInfo(bundleID, 0);
+		} catch (NameNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		return info;
+	}
+	
+	/**
+	 * 判断地理位置状态是否打开,注意添加权限android.permission.ACCESS_FINE_LOCATION
+	 * @param context 上下文
+	 * @return 可用返回true，否则返回false
+	 */
+	public static boolean isLocationEnable(Context context) {
+		// 获取地理位置管理器
+		LocationManager locationManager = (LocationManager) context
+				.getSystemService(Context.LOCATION_SERVICE);
+		// 获取所有可用的位置提供器
+		List<String> providers = locationManager.getProviders(true);
+		
+		String provider = "";
+		if(providers.contains(LocationManager.GPS_PROVIDER)){  
+            //如果是GPS  
+            provider = LocationManager.GPS_PROVIDER;  
+        }else if(providers.contains(LocationManager.NETWORK_PROVIDER)){  
+            //如果是Network  
+        	provider = LocationManager.NETWORK_PROVIDER;  
+        }else{
+        	//没有位置提供者，则状态应该是不可用。
+            return false;  
+        }  
+		return true;
+	}
+	
+	/**
+	 * 返回经纬度
+	 * @param context 上下文
+	 * @return 获取经度map.get("latitude")<br>获取纬度map.get("longitude")
+	 */
+	public static HashMap<String,Double> getLocation(Context context) {
+		HashMap<String,Double> map = null;
+		// 获取地理位置管理器
+		LocationManager locationManager = (LocationManager) context
+				.getSystemService(Context.LOCATION_SERVICE);
+		// 获取所有可用的位置提供器
+		List<String> providers = locationManager.getProviders(true);
+		
+		String provider = "";
+		if(providers.contains(LocationManager.GPS_PROVIDER)){  
+            //如果是GPS  
+            provider = LocationManager.GPS_PROVIDER;  
+        }else if(providers.contains(LocationManager.NETWORK_PROVIDER)){  
+            //如果是Network  
+        	provider = LocationManager.NETWORK_PROVIDER;  
+        }else{
+        	//没有位置提供者，则返回null。
+            return map;  
+        }  
+		map = new HashMap<String, Double>();
+		Location location = locationManager.getLastKnownLocation(provider);
+		//经度   
+		double latitude = location.getLatitude();
+		//纬度
+		double longitude = location.getLongitude(); 
+		map.put("latitude", latitude);
+		map.put("longitude", longitude);
+		return map;
+	}
+	
+	/**
+	 * SIM卡信息：可用否，是否有数据连接，运营商，归属省份，经纬度，设备ID，电话号码；根据需求封装数据；注意添加权限
+	 * android.permission.READ_PHONE_STATE；
+     * @category
+     *   dataActivity表示数据活动状态<br>
+         * DATA_ACTIVITY_IN：活动，正在接受数据<br>
+         * DATA_ACTIVITY_OUT：活动，正在发送数据<br>
+         * DATA_ACTIVITY_INOUT：活动，正在接受和发送数据<br>
+         * DATA_ACTIVITY_NONE：活动，但无数据发送和接收<br>
+	 * @category
+	 * dataState表示数据连接状态<br>
+         * DATA_CONNECTED：已连接<br>
+         * DATA_CONNECTING ：正在连接<br>
+         * DATA_DISCONNECTED：断开<br>
+         * DATA_SUSPENDED：暂停<br>
+	 * @param context 上下文
+	 * @return 获取设备IDmap.get("deviceID")<br>
+	 *         获取手机号码map.get("phoneNumber")；手机号码可能为空，如今较为主流的方法是主动发送短信给运营商，通过在运营商返回的短信中获取号码；又或者用户在客户端用手机号码注册时获取。<br>
+	 *         获取SIM串号map.get("simSerialNumber")<br>
+	 *         获取运营商名称map.get("operatorName")<br>
+	 *         获取数据连接状态map.get("dataActivity")<br> 
+	 *         获取数据活动状态map.get("dataState")
+	 *  
+	 */
+	public static HashMap<String,String> getSIMCardInfo(Context context){
+		HashMap<String,String> map = null;
+		TelephonyManager telManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+		//设备ID
+		String deviceID = telManager.getDeviceId();
+		/**
+		 * 获取手机号码，但是可能为空；如今较为主流的方法是主动发送短信给运营商，通过在运营商返回的短信中获取号码；又或者用户在客户端用手机号码注册时获取。
+		 */
+		String phoneNum = telManager.getLine1Number();
+		//获得SIM卡的序号 （IMEI） 
+		String simSerialNumber = telManager.getSimSerialNumber();
+		//运营商名字，如中国移动
+		String operatorName = telManager.getNetworkOperatorName();
+		//归属省份
+		
+        /**
+         * 获取数据活动状态
+         * DATA_ACTIVITY_IN 数据连接状态：活动，正在接受数据
+         * DATA_ACTIVITY_OUT 数据连接状态：活动，正在发送数据
+         * DATA_ACTIVITY_INOUT 数据连接状态：活动，正在接受和发送数据
+         * DATA_ACTIVITY_NONE 数据连接状态：活动，但无数据发送和接收
+         */
+		//telManager.getDataActivity();
+        /**
+         * 获取数据连接状态
+         * DATA_CONNECTED 数据连接状态：已连接
+         * DATA_CONNECTING 数据连接状态：正在连接
+         * DATA_DISCONNECTED 数据连接状态：断开
+         * DATA_SUSPENDED 数据连接状态：暂停
+         */
+		//telManager.getDataState();
+		map = new HashMap<String, String>();
+		map.put("deviceID", deviceID);
+		map.put("phoneNumber", phoneNum);
+		map.put("simSerialNumber", simSerialNumber);
+		map.put("operatorName", operatorName);
+		map.put("dataActivity", String.valueOf(telManager.getDataActivity()));
+		map.put("dataState", String.valueOf(telManager.getDataState()));
+		return map;
 	}
 }

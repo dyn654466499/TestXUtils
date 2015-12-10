@@ -27,7 +27,7 @@ public class TrafficInfo {
 	//手机IMEI
 	protected String imei = tm.getDeviceId();
 	
-	//网络类型
+	//网络类型:2g/3g/4g/wifi
 	protected String netType="";
 	
 	//数据量的字节数
